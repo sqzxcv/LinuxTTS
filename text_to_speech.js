@@ -16,7 +16,7 @@ const login = (usr,pwd, params) => {
     var libm = ffi.Library(libPath, {
         'MSPLogin': ['int',['string','string','string']]
     })
-    var ret = MSPLogin(usr, pwd, params)
+    var ret = libm.MSPLogin(usr, pwd, params)
     console("登陆返回值：" + ret)
     return ret
 }
