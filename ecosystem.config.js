@@ -35,7 +35,7 @@ module.exports = {
       ref: 'origin/master',
       repo: 'git@github.com:sqzxcv/LinuxTTS.git',
       path: '/var/www/LinuxTTS',
-      "post-deploy": 'nvm use 8.0.0 && git pull && cnpm install && pm2 reload ecosystem.config.js --env production'
+      "post-deploy": 'nvm use 8.0.0 && git pull && npm install && pm2 reload ecosystem.config.js --env production'
     }
   }
 };
