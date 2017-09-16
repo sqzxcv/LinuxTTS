@@ -18,4 +18,5 @@ class wave_pcm_hdr {
     }
 }
 
+module.exports = wave_pcm_hdr
 
