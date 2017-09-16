@@ -73,10 +73,6 @@ const text_to_speech = async(src_text, des_path, params) => {
     var size_8 = raw_data.length + 44 - 8
     console.log(`size_8:${size_8}, audio length:${raw_data.length}`)
     buffer.write('RIFF', 0, 4, 'ascii')
-    // buffer.writeUInt8 (size_8 & 0xff,4)
-    // buffer.writeUInt8 (size_8 >> 8 & 0xff,5)
-    // buffer.writeUInt8 (size_8 >> 16 & 0xff,6)
-    // buffer.writeUInt8 (size_8 >>24 & 0xff,7)
     buffer.writeUInt32LE(size_8, 4) //todo: data_size + (sizeof(wav_hdr) - 8);
     buffer.write('WAVE', 8, 4, 'ascii')
     buffer.write('fmt ', 12, 4, 'ascii')

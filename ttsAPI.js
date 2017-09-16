@@ -27,7 +27,9 @@ const ttsTextPut = (sessionID, src_text) => {
     var libm = ffi.Library(libPath, {
         'QTTSTextPut': ['int', ['string', 'string', 'int', 'string']]
     })
-    return libm.QTTSTextPut(sessionID, src_text, src_text.length, ref.NULL)
+
+    /* 此处传入字符串的字节长度 */
+    return libm.QTTSTextPut(sessionID, src_text, Buffer.byteLength(src_text,'utf8'), ref.NULL)
 }
 
 const ttsAudioGet = (sessionID) => {
