@@ -102,8 +102,8 @@ int text_to_speech(const char* src_text, const char* des_path, const char* param
 		}
 		if (MSP_TTS_FLAG_DATA_END == synth_status)
 			break;
-		printf(">");
-		usleep(150*1000); //防止频繁占用CPU
+		printf(">size:%d\n", wav_hdr.data_size);
+		usleep(20*1000); //防止频繁占用CPU
 	}
 	printf("\n");
 	if (MSP_SUCCESS != ret)
@@ -114,8 +114,10 @@ int text_to_speech(const char* src_text, const char* des_path, const char* param
 		return ret;
 	}
 	/* 修正wav文件头数据的大小 */
+	printf("1------size_8:%d\n", wav_hdr.size_8);
 	wav_hdr.size_8 += wav_hdr.data_size + (sizeof(wav_hdr) - 8);
 	
+	printf("2------size_8:%d\ = data_size:%d + (wav_hdr:%d - 8)n", wav_hdr.size_8, wav_hdr.data_size, sizeof(wav_hdr));
 	/* 将修正过的数据写回文件头部,音频文件为wav格式 */
 	fseek(fp, 4, 0);
 	fwrite(&wav_hdr.size_8,sizeof(wav_hdr.size_8), 1, fp); //写入size_8的值

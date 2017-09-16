@@ -5,6 +5,7 @@ const ttsAPI = require("./ttsAPI")
 
 const text_to_speech = async(src_text, des_path, params) => {
 
+    console.log("开始转化文本：" + src_text)
     var ret = -1
     var sessionID = null
     var audio_len = 0
@@ -30,7 +31,7 @@ const text_to_speech = async(src_text, des_path, params) => {
     }
     console.log('正在合成 ...')
 
-    // var data_size = 0
+    var data_size = 0
     var raw_data = null
     while (1) {
         var result = ttsAPI.ttsAudioGet(sessionID)
@@ -43,7 +44,7 @@ const text_to_speech = async(src_text, des_path, params) => {
         ret = result.errorCode
         if (result.data != null) {
             // fs.appendFileSync(des_path, result.data)
-            // data_size += result.audio_len
+            data_size += result.audio_len
             if (raw_data == null) {
                 raw_data = new Buffer.from(result.data)
             } else {
@@ -54,7 +55,12 @@ const text_to_speech = async(src_text, des_path, params) => {
             console.log("tts 转化完成")
             break
         }
-        // console.log("...ing...大小：" + raw_data == null ? 0 :raw_data.length)
+        if (raw_data === null) {
+            console.log("...ing...大小：0")
+        } else {
+            console.log("...ing...大小：" + raw_data.length + "----data_size:" + data_size)
+
+        }
         await sleepp(1.5)
     }
     if (ttsAPI.MSP_SUCCESS != ret) {
@@ -64,18 +70,23 @@ const text_to_speech = async(src_text, des_path, params) => {
     }
 
     var buffer = new Buffer(44)
-
-    buffer.write("RIFF", 0, 4, "ascii")
-    buffer.writeUInt32LE(raw_data.length - 44 - 8, 4) //todo: data_size + (sizeof(wav_hdr) - 8);
+    var size_8 = raw_data.length + 44 - 8
+    console.log(`size_8:${size_8}, audio length:${raw_data.length}`)
+    buffer.write('RIFF', 0, 4, 'ascii')
+    // buffer.writeUInt8 (size_8 & 0xff,4)
+    // buffer.writeUInt8 (size_8 >> 8 & 0xff,5)
+    // buffer.writeUInt8 (size_8 >> 16 & 0xff,6)
+    // buffer.writeUInt8 (size_8 >>24 & 0xff,7)
+    buffer.writeUInt32LE(size_8, 4) //todo: data_size + (sizeof(wav_hdr) - 8);
     buffer.write('WAVE', 8, 4, 'ascii')
-    buffer.write('fmt', 12, 3, 'ascii')
+    buffer.write('fmt ', 12, 4, 'ascii')
     buffer.writeUInt32LE(16, 16)
-    buffer.writeUInt16Le(1, 20)
-    buffer.writeUInt16Le(1, 22)
+    buffer.writeUInt16LE(1, 20)
+    buffer.writeUInt16LE(1, 22)
     buffer.writeUInt32LE(16000, 24)
     buffer.writeUInt32LE(32000, 28)
-    buffer.writeUInt16Le(2, 32)
-    buffer.writeUInt16Le(16, 34)
+    buffer.writeUInt16LE(2, 32)
+    buffer.writeUInt16LE(16, 34)
     buffer.write('data', 36, 4, 'ascii')
     buffer.writeUInt32LE(raw_data.length, 40)
 
