@@ -5,7 +5,7 @@ const ttsAPI = require("./ttsAPI")
 
 const text_to_speech = async(src_text, des_path, params) => {
 
-    console.log("开始转化文本：" + src_text)
+    // console.log("开始转化文本：" + src_text)
     var ret = -1
     var sessionID = null
     var audio_len = 0
@@ -31,24 +31,19 @@ const text_to_speech = async(src_text, des_path, params) => {
     }
     console.log('正在合成 ...')
 
-    var data_size = 0
     var raw_data = null
     while (1) {
         var result = ttsAPI.ttsAudioGet(sessionID)
-        //console.error("获取音频数据" + JSON.stringify(result))
         if (result.errorCode != ttsAPI.MSP_SUCCESS) {
             console.error("获取音频数据失败，错误：" + JSON.stringify(result))
-            console.error("errorcode:" + result.errorCode)
             break
         }
         ret = result.errorCode
         if (result.data != null) {
-            // fs.appendFileSync(des_path, result.data)
-            data_size += result.audio_len
             if (raw_data == null) {
-                raw_data = new Buffer.from(result.data)
+                raw_data = result.data
             } else {
-                raw_data = Buffer.concat([raw_data, new Buffer.from(result.data)])
+                raw_data = Buffer.concat([raw_data, result.data])
             }
         }
         if (ttsAPI.MSP_TTS_FLAG_DATA_END == result.synth_status) {
@@ -58,10 +53,10 @@ const text_to_speech = async(src_text, des_path, params) => {
         if (raw_data === null) {
             console.log("...ing...大小：0")
         } else {
-            console.log("...ing...大小：" + raw_data.length + "----data_size:" + data_size)
+            console.log("...ing...大小：" + raw_data.length)
 
         }
-        await sleepp(1.5)
+        await sleep(1.5)
     }
     if (ttsAPI.MSP_SUCCESS != ret) {
         console.error("QTTSAudioGet failed, error code: %d.\n", ret)
@@ -69,11 +64,12 @@ const text_to_speech = async(src_text, des_path, params) => {
         return ret
     }
 
+    /* 创建wav文件头 */
     var buffer = new Buffer(44)
     var size_8 = raw_data.length + 44 - 8
     console.log(`size_8:${size_8}, audio length:${raw_data.length}`)
     buffer.write('RIFF', 0, 4, 'ascii')
-    buffer.writeUInt32LE(size_8, 4) //todo: data_size + (sizeof(wav_hdr) - 8);
+    buffer.writeUInt32LE(size_8, 4)
     buffer.write('WAVE', 8, 4, 'ascii')
     buffer.write('fmt ', 12, 4, 'ascii')
     buffer.writeUInt32LE(16, 16)
@@ -103,7 +99,7 @@ const text_to_speech = async(src_text, des_path, params) => {
     return ret
 }
 
-var sleepp = function (time) {
+var sleep = function (time) {
     return new Promise(function (resolve, reject) {
         setTimeout(function () {
             resolve();
