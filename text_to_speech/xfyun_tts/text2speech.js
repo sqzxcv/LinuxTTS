@@ -3,25 +3,35 @@
 const fs = require("fs")
 const ttsAPI = require("./ttsAPI")
 const randomActor = require('./actor')
+const qiniu = require("qiniu")
+const bluebird = require("bluebird")
+bluebird.promisifyAll(qiniu.form_up.FormUploader.prototype, {
+    multiArgs: true
+})
+bluebird.promisifyAll(qiniu.fop.OperationManager.prototype, {
+    multiArgs: true
+})
 
 const text2speech = async(text) => {
 
+    console.log(`text.length:${text.length}-------------byte length:${Buffer.byteLength(text
+    , 'utf8')}`)
     var splitArr = text.split(/(\.|\?|!|。|？|！)/g)
     var textArr = []
     var subText = ""
     splitArr.forEach(function (substr) {
-        if ((subText + substr).length > 4000 && subText.length != 0) {
-            textArr.push(encodeURI(subText))
+        if ((subText + substr).length > 1000 && subText.length != 0) {
+            textArr.push(subText)
             subText = substr
-        } else if ((subText + substr).length > 4000 && subText.length == 0) {
+        } else if ((subText + substr).length > 1000 && subText.length == 0) {
             subText += substr
-            textArr.push(encodeURI(subText))
+            textArr.push(subText)
             subText = ""
         } else {
             subText += substr
         }
     }, this);
-    textArr.push(encodeURI(subText))
+    textArr.push(subText)
 
     if (textArr.length > 1) {
         var textfilepath = "audio_" + ((new Date()).getTime())
@@ -32,10 +42,10 @@ const text2speech = async(text) => {
                 var sbtext = textArr[index];
                 filepath = textfilepath + "_" + index + ".wav"
                 try {
-                    var res = await text_to_speech(text, filepath, randomActor())
+                    var res = await text_to_speech(sbtext, filepath, randomActor())
                     if (ttsAPI.MSP_SUCCESS != res.ret) {
                         console.error("合成失败")
-                        continue
+                        return null
                     }
                     if (0 == await uploadspeech(filepath, res.data, "pipixia-rawdata")) {
                         console.error("上传音频文件失败")
@@ -64,14 +74,17 @@ const text2speech = async(text) => {
         var filepath = textfilepath + "_" + index + ".wav"
         var res = await text_to_speech(text, filepath, randomActor())
         if (ttsAPI.MSP_SUCCESS != res.ret) {
-            console.error("合成失败")
-            continue
+            console.error("生成音频失败")
+            return null
         }
         if (0 == await uploadspeech(filepath, res.data, "pipixia")) {
             console.error("上传音频文件失败")
             return null
         }
-        console.log("上传" + index + "音频文件成功")
+        console.log("上传音频文件成功")
+        result = "http://oty38yumz.bkt.clouddn.com/" + result
+        console.log("完整音频地址:" + result)
+        return
     }
 
 }

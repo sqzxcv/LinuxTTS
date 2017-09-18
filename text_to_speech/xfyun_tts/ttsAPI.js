@@ -30,8 +30,10 @@ const ttsTextPut = (sessionID, src_text) => {
         'QTTSTextPut': ['int', ['string', 'string', 'int', 'string']]
     })
 
+    var length = Buffer.byteLength(src_text,'utf8')
+    console.info(`puting text[${src_text.length}] bytes length: ${length}`)
     /* 此处传入字符串的字节长度 */
-    return libm.QTTSTextPut(sessionID, src_text, Buffer.byteLength(src_text,'utf8'), ref.NULL)
+    return libm.QTTSTextPut(sessionID, src_text, length, ref.NULL)
 }
 
 const ttsAudioGet = (sessionID) => {
