@@ -62,8 +62,7 @@ const convertTTSJob = () => {
 
     return new Promise(async function (resolve, reject) {
 
-        // var sql = `select doc_id, content, contentHtml,news_time, title, url from document where audio is NULL and news_time != 0  order by doc_id desc limit 1;`
-        var sql = `select * from document where doc_id = 7919`
+        var sql = `select doc_id, content, contentHtml,news_time, title, url from document where audio is NULL and news_time != 0  order by doc_id desc limit 1;`
         var update = `insert into document (doc_id, audio, url) values`
         var insert = `insert ignore into radioDB(news_id, catalog_name, catalog_id,image, duration, summary, text, tags, source, hot,news_time,title,audio,collect_time, catalogid) values`
         var results = await connection.queryAsync(sql)
