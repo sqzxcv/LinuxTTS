@@ -17,7 +17,14 @@
   },
   "homepage": "https://github.com/sqzxcv/LinuxTTS#readme",
   "dependencies": {
-    "cnpm": "^5.1.1",
-    "ffi": "^2.2.0"
+    "async": "^2.5.0",
+    "bluebird": "^3.5.0",
+    "ffi": "^2.2.0",
+    "moment": "^2.18.1",
+    "mysql": "^2.14.1",
+    "node-schedule": "^1.2.4",
+    "qiniu": "^7.0.6",
+    "request": "^2.81.0",
+    "sqlstring": "^2.2.0"
   }
 }

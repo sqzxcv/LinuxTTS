@@ -1,3 +1,6 @@
+
+"use strict";
+
 const request_koa = require("../../common/request_koa.js")
 const moment = require("moment")
 const fs = require("fs")
@@ -14,23 +17,23 @@ bluebird.promisifyAll(qiniu.fop.OperationManager.prototype, {
     multiArgs: true
 })
 
-access_token = ""
-expires_date = 0
-qiniuAuth = ""
+var access_token = ""
+var expires_date = 0
+var qiniuAuth = ""
 
 /**
  * @param  {string} text 
  * @return 返回 通过text 转换成 的mp3音频文件路径,如果转换失败,返回 null
  */
 const text2speech = async(text) => {
-    var splitArr = text.split(/(\.|\?|!|,|;|。|？|！|，|、|；)/g)
+    var splitArr = text.split(/(\.|\?|!|。|？|！)/g)
     var textArr = []
     var subText = ""
     splitArr.forEach(function (substr) {
-        if ((subText + substr).length > 300 && subText.length != 0) {
+        if ((subText + substr).length > 500 && subText.length != 0) {
             textArr.push(encodeURI(subText))
             subText = substr
-        } else if ((subText + substr).length > 300 && subText.length == 0) {
+        } else if ((subText + substr).length > 500 && subText.length == 0) {
             subText += substr
             textArr.push(encodeURI(subText))
             subText = ""
@@ -49,12 +52,12 @@ const text2speech = async(text) => {
         var textfilepath = "audio_" + ((new Date()).getTime())
         var url = ""
         var filepath = ""
-        mp3urls = []
+        var mp3urls = []
         for (var index in textArr) {
             if (textArr.hasOwnProperty(index)) {
                 var sbtext = textArr[index];
                 url = ttsurl + sbtext
-                res = await request_koa({
+                var res = await request_koa({
                     url: url,
                     encoding: null
                 })
@@ -81,6 +84,7 @@ const text2speech = async(text) => {
            console.log("完整音频地址:" + result)
            return result
        } else {
+           console.error("～～～～音频拼接失败")
            return null
        }
     }
@@ -192,16 +196,23 @@ const uploadspeech = async(key, buffer) => {
     putExtra.fname = key
     // var key = "audio_" + moment().unix()+".mp3"
     try {
-        var results = await formUploader.putAsync(uploadToken, key, buffer, putExtra)
-        var respBody = results[0]
-        var respInfo = results[1]
-        if (respInfo.statusCode == 200) {
-            console.log(respBody)
-            return 1
-        } else {
-            console.log(respInfo.statusCode)
-            console.log(respBody)
-            throw new Error(respInfo.statusCode + respBody)
+        var retry = 0
+        while (retry < 3) {
+
+            var results = await formUploader.putAsync(uploadToken, key, buffer, putExtra)
+            var respBody = results[0]
+            var respInfo = results[1]
+            if (respInfo.statusCode == 200) {
+                console.log(respBody)
+                return 1
+            } else {
+                console.log(respInfo.statusCode)
+                console.log(respBody)
+                throw new Error(respInfo.statusCode + respBody)
+            }
+            await sleep(1)
+            console.log("retry count:" + retry)
+            retry ++;
         }
     } catch (error) {
         console.error(error)
@@ -215,18 +226,18 @@ const login = async() => {
 
         return access_token
     }
-    url = " https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=6NCOZQHM7f2bGzc9tKemZovU&client_secret=X0uXNGMIUkiockwY8Q16P6B41E3Xc98a&"
+    var url = " https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=6NCOZQHM7f2bGzc9tKemZovU&client_secret=X0uXNGMIUkiockwY8Q16P6B41E3Xc98a&"
     try {
-        resStr = await request_koa({
+        var resStr = await request_koa({
             url: url
         });
-        res = JSON.parse(resStr.body)
+        var res = JSON.parse(resStr.body)
         access_token = res['access_token']
         expires_date = moment().unix() + res["expires_in"] - 1000
         return access_token
     } catch (error) {
         console.error("get baidu  tts token faild")
-        console.error(err)
+        console.error(error)
         access_token = ""
         expires_date = 0
         return ""

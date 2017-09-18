@@ -1,4 +1,5 @@
-const wav_hdr = require("./wave_pcm_hdr")
+"use strict";
+
 const fs = require("fs")
 const ttsAPI = require("./ttsAPI")
 const randomActor = require('./actor')
@@ -25,7 +26,7 @@ const text2speech = async(text) => {
     if (textArr.length > 1) {
         var textfilepath = "audio_" + ((new Date()).getTime())
         var filepath = ""
-        mp3urls = []
+        var mp3urls = []
         for (var index in textArr) {
             if (textArr.hasOwnProperty(index)) {
                 var sbtext = textArr[index];
