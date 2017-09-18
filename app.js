@@ -1,8 +1,8 @@
 "use strict";
 
-// const ttsAPI = require("./text_to_speech/xfyun_tts/ttsAPI")
-// const text_to_speech = require("./text_to_speech/xfyun_tts/text2speech")
-const text_to_speech = require("./text_to_speech/baidu_tts/text2speech")
+const ttsAPI = require("./text_to_speech/xfyun_tts/ttsAPI")
+const text_to_speech = require("./text_to_speech/xfyun_tts/text2speech")
+// const text_to_speech = require("./text_to_speech/baidu_tts/text2speech")
 const asyncJob = require('async');
 const request_koa = require("./common/request_koa.js")
 const mysql = require('mysql')
@@ -19,13 +19,13 @@ var connection = null
 const main = async() => {
 
     /* 用户登录 */
-    // var ret = 0
-    // var login_params = "appid = 59b98543, work_dir = ."
-    // ret = ttsAPI.login(null, null, login_params)
-    // if (ttsAPI.MSP_SUCCESS != ret) {
-    //     console.error("登陆失败")
-    //     return
-    // }
+    var ret = 0
+    var login_params = "appid = 59b98543, work_dir = ."
+    ret = ttsAPI.login(null, null, login_params)
+    if (ttsAPI.MSP_SUCCESS != ret) {
+        console.error("登陆失败")
+        return
+    }
     var pool = mysql.createPool({
         host: config['dbhost'],
         user: config['dbuser'],

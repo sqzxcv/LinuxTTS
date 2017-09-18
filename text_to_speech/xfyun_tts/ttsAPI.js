@@ -1,3 +1,5 @@
+"use strict";
+
 var ffi = require('ffi');
 const ref = require("ref");
 

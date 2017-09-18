@@ -1,1 +1,5 @@
 pm2 deploy ecosystem.config.js production
+
+rm -rf test.wav  & scp root@116.62.195.14:/var/www/LinuxTTS/source/test.wav /Users/xiajun/Documents/codes/
+
+xiajun$ scp * root@116.62.195.14:/var/www/LinuxTTS/source/
