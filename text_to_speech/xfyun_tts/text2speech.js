@@ -12,7 +12,6 @@ bluebird.promisifyAll(qiniu.resume_up.ResumeUploader.prototype, {
 
 const text2speech = async(text) => {
 
-    text = "亲爱的用户，您好，这是一个语音合成示例，感谢您对科大讯飞语音技术的支持"
     var splitArr = text.split(/(\.|\?|!|。|？|！)/g)
     var textArr = []
     var subText = ""
@@ -30,7 +29,6 @@ const text2speech = async(text) => {
     }, this);
     textArr.push(subText)
 
-    var textfilepath = "audio_" + ((new Date()).getTime())
     var raw_data = null
     for (var index in textArr) {
         if (textArr.hasOwnProperty(index)) {
@@ -54,8 +52,8 @@ const text2speech = async(text) => {
         }
     }
 
-    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data])
-    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data /*, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data */ ])
+    // raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data])
+    // raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data /*, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data */ ])
     /* 创建wav文件头 */
     var buffer = new Buffer(44)
     var size_8 = raw_data.length + 44 - 8
@@ -77,26 +75,14 @@ const text2speech = async(text) => {
     var audio_data = Buffer.concat([buffer, raw_data])
 
     console.log("audiosize:" + audio_data.length)
-
-    var result = textfilepath + ".wav"
-    // todo remove
-    try {
-        var fd = fs.openSync(result, "w");
-        fs.writeSync(fd, audio_data, 0, audio_data.length);
-        fs.closeSync(fd)
-    } catch (error) {
-        console.error(error)
-    }
-
-
-    if (0 == await uploadspeech(result, audio_data, "pipixia")) {
+    var key = await uploadspeech(audio_data)
+    if (key == null) {
         console.error("上传音频文件失败")
         return null
     }
     console.log("上传音频文件成功")
-    result = "http://oty38yumz.bkt.clouddn.com/" + result
-    console.log("完整音频地址:" + result)
-    return result
+    console.log("完整音频地址:" + key)
+    return key
 
 }
 
@@ -181,14 +167,32 @@ var sleep = function (time) {
  *  if upload still failed after retry, it return "None"
  * @param {string} key file name on qiniu
  * @param  {bytes} buffer
- * @return 0 = upload failed, 1 = upload successed
+ * @return null = upload failed, or uploaded key
  */
-const uploadspeech = async(key, buffer, saveBucket) => {
+const uploadspeech = async(buffer) => {
+
+    var audioFileFolder = __dirname + "/xfyun_tts"
+    if (fsExistsSync(audioFileFolder) == false) {
+        fs.mkdirSync(audioFileFolder);
+    }
+    var key = "audio_" + ((new Date()).getTime()) + ".wav"
+    var localfile = audioFileFolder + "/" + key
+    // todo remove
+    try {
+        var fd = fs.openSync(localfile, "w");
+        fs.writeSync(fd, buffer, 0, buffer.length);
+        fs.closeSync(fd)
+        console.log("localfile: " + localfile)
+    } catch (error) {
+        console.error(error)
+        return null
+    }
+
     var access_key = '_D2Iavhr-DRKHHhW0BTT7-liQ2jO-1cC_lqKn0eF'
     var secret_key = 'E3QKF99mgA8HAyGF1nMlKWVVaKlIxRpTZvEb1CiO'
     var mac = new qiniu.auth.digest.Mac(access_key, secret_key)
     var options = {
-        scope: saveBucket, //"pipixia-rawdata",
+        scope: 'pipixia',
         expires: 7200
     }
     var putPolicy = new qiniu.rs.PutPolicy(options)
@@ -205,25 +209,20 @@ const uploadspeech = async(key, buffer, saveBucket) => {
     var putExtra = new qiniu.resume_up.PutExtra()
     putExtra.mimeType = "audio/mpeg"
     putExtra.fname = key
-    putExtra.resumeRecordFile = 'progress.log'
+    // putExtra.resumeRecordFile = 'progress.log'
     
     putExtra.progressCallback = function (uploadBytes, totalBytes) {
         console.log(`upload progress:......${parseInt(uploadBytes * 1009/totalBytes)/10} %....${uploadBytes/1000000} MB/ ${totalBytes/1000000}MB`);
     }
     try {
-        var streamBuffers = require('stream-buffers');
-        var fsStream = new streamBuffers.ReadableStreamBuffer({
-            frequency: 10, // in milliseconds.
-            chunkSize: 2048 * 100 // in bytes.
-        });
-        fsStream.put(buffer)
-        var results = await resumeUploader.putStreamAsync(uploadToken, null, fsStream, buffer.length, putExtra)
+        var results = await resumeUploader.putFileAsync(uploadToken, null, localfile, putExtra);
         console.log("results:" + results)
         var respBody = results[0]
         var respInfo = results[1]
         if (respInfo.statusCode == 200) {
             console.log(respBody)
-            return 1
+            fs.unlinkSync(localfile)
+            return key
         } else {
             console.log(respInfo.statusCode)
             console.log(respBody)
@@ -231,8 +230,17 @@ const uploadspeech = async(key, buffer, saveBucket) => {
         }
     } catch (error) {
         console.error(error)
-        return 0
+        return null
     }
+}
+
+function fsExistsSync(path) {
+    try {
+        fs.accessSync(path, fs.F_OK);
+    } catch (e) {
+        return false;
+    }
+    return true;
 }
 
 module.exports = text2speech

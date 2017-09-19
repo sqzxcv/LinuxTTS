@@ -14,8 +14,8 @@ var putPolicy = new qiniu.rs.PutPolicy(options);
 
 var uploadToken = putPolicy.uploadToken(mac);
 var config = new qiniu.conf.Config();
-// var localFile = "/var/www/LinuxTTS/source/audio_1505745859801.wav";
-var localFile = `/Users/xiajun/Documents/Codes/wav/audio_1505728753388_3.wav`
+// var localFile = "/var/www/LinuxTTS/source/text_to_speech/xfyun_tts/xfyun_tts/audio_1505814637030.wav";
+var localFile = `/Users/xiajun/Documents/Codes/wav/audio_1505814637030.wav`//`/Users/xiajun/Documents/Codes/wav/audio_1505728753388_3.wav`
 config.zone = qiniu.zone.Zone_z2;
 config.useCdnDomain = true;
 var resumeUploader = new qiniu.resume_up.ResumeUploader(config);
@@ -25,9 +25,9 @@ putExtra.params = {
   "x:age": 27,
 }
 putExtra.fname = 'testfile.wave';
-putExtra.resumeRecordFile = 'progress.log';
+// putExtra.resumeRecordFile = 'progress.log';
 putExtra.progressCallback = function (uploadBytes, totalBytes) {
-  console.log("progress:" + uploadBytes + "(" + totalBytes + ")");
+  console.log(`upload progress:......${parseInt(uploadBytes * 1009/totalBytes)/10} %....${uploadBytes/1000000} MB/ ${totalBytes/1000000}MB`);
 }
 
 //file
@@ -36,50 +36,11 @@ console.log(localFile)
 console.log(putExtra)
 
 
-// resumeUploader.putFile(uploadToken, null, localFile, putExtra, function(respErr,
-//   respBody, respInfo) {
-//   if (respErr) {
-//     console.error(respErr)
-//     throw respErr;
-//   }
-
-//   if (respInfo.statusCode == 200) {
-//     console.log(respBody);
-//   } else {
-//     console.log(respInfo.statusCode);
-//     console.log(respBody);
-//   }
-// });
-
-var buffer = new Buffer.from("哈哈哈哈啊哈哈哈啊哈哈哈啊哈哈", 'utf8')
-buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-// buffer = Buffer.concat([buffer, buffer, buffer, buffe,])
-// buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-// buffer = Buffer.concat([buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer, buffer])
-
-console.log("buffer size: " + buffer.length)
-
-var fsStream = new Readable();
-fsStream.push(buffer);
-// fsStream.push(null);
-fsStream.resume()
-
-// var streamBuffers = require('stream-buffers');
-
-// var fsStream = new streamBuffers.ReadableStreamBuffer({
-// 	frequency: 10,   // in milliseconds.
-// 	chunkSize: 2048  // in bytes.
-// });
-
-// fsStream.put(buffer)
-
-resumeUploader.putStream(uploadToken, null, fsStream, buffer.length, putExtra, function (respErr,respBody,respInfo) {
+resumeUploader.putFile(uploadToken, null, localFile, putExtra, function(respErr,
+  respBody, respInfo) {
   if (respErr) {
     console.error(respErr)
-    // throw respErr;
+    throw respErr;
   }
 
   if (respInfo.statusCode == 200) {
