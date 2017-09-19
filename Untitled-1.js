@@ -28,3 +28,5 @@ const test = (text) => {
 }
 
 test(a)
+
+curl -v -F 'key=1111' -F 'UpToken IsFwIU4Wm-08kjbg3veg5pjCoRzf43LLAO5vCVCS:md3WhB1Bq58qwgN-Syk_-YeUE9M=:eyJzY29wZSI6InBpcGl4aWEtcmF3ZGF0YSIsImRlYWRsaW5lIjoxNTA1ODA4ODk1fQ==' -F 'file=/Users/xiajun/Documents/Codes/wav/audio_1505728753388_3.wav' upload.qiniu.com

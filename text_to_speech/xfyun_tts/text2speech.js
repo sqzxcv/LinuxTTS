@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require("fs")
-const Readable = require('stream').Readable;
+var streamBuffers = require('stream-buffers');
 const ttsAPI = require("./ttsAPI")
 const randomActor = require('./actor')
 const qiniu = require("qiniu")
@@ -55,7 +55,7 @@ const text2speech = async(text) => {
     }
 
     raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data])
-    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data , raw_data, raw_data, raw_data/*, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data */ ])
+    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data /*, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data */ ])
     /* 创建wav文件头 */
     var buffer = new Buffer(44)
     var size_8 = raw_data.length + 44 - 8
@@ -206,13 +206,17 @@ const uploadspeech = async(key, buffer, saveBucket) => {
     putExtra.mimeType = "audio/mpeg"
     putExtra.fname = key
     putExtra.resumeRecordFile = 'progress.log'
+    
     putExtra.progressCallback = function (uploadBytes, totalBytes) {
-        console.log("upload progress:" + uploadBytes + "(" + totalBytes + ")");
+        console.log(`upload progress:......${parseInt(uploadBytes * 1009/totalBytes)/10} %....${uploadBytes/1000000} MB/ ${totalBytes/1000000}MB`);
     }
     try {
-        var fsStream = new Readable();
-        fsStream.push(buffer);
-        fsStream.push(null);
+        var streamBuffers = require('stream-buffers');
+        var fsStream = new streamBuffers.ReadableStreamBuffer({
+            frequency: 10, // in milliseconds.
+            chunkSize: 2048 * 100 // in bytes.
+        });
+        fsStream.put(buffer)
         var results = await resumeUploader.putStreamAsync(uploadToken, null, fsStream, buffer.length, putExtra)
         console.log("results:" + results)
         var respBody = results[0]
