@@ -43,7 +43,7 @@ const main = async() => {
         return
     }
     var results
-    
+
     while (1) {
 
         results = await convertTTSJob()
@@ -94,8 +94,11 @@ const convertTTSJob = () => {
                         var radioValue = `('${"doc_"+result.doc_id}', '${""}', '${"0"}', '${""}', ${0}, '${""}', '${''}', ${tags}, '${""}', ${0}, ${newtime}, ${sqlStringM.escape(result.title)}, ${sqlStringM.escape(audio_path)}, ${moment().unix()}, ${catalogid})`
 
                         var updateDoc = `(${result.doc_id}, ${sqlStringM.escape(audio_path)}, ${sqlStringM.escape(result.url)})`
-                        callback(null, {radioValue:radioValue, updateDoc:updateDoc})
-                
+                        callback(null, {
+                            radioValue: radioValue,
+                            updateDoc: updateDoc
+                        })
+
                     }
                 } catch (error) {
                     console.error(error)
@@ -105,7 +108,8 @@ const convertTTSJob = () => {
             job()
         }, async(err, results) => {
             try {
-                var radioValues = [], updateDocs = []
+                var radioValues = [],
+                    updateDocs = []
                 for (var index = 0; index < results.length; index++) {
                     var element = results[index];
                     if (element !== null) {
@@ -113,10 +117,11 @@ const convertTTSJob = () => {
                         updateDocs.push(element.updateDoc)
                     }
                 }
+                var res = null
                 if (updateDocs.length != 0) {
                     update += updateDocs.join(', ')
                     update += ` on duplicate key update audio=values(audio)`
-                    var res = await connection.queryAsync(update)
+                    res = await connection.queryAsync(update)
                     console.log("update document row:" + res.affectedRows)
                 }
                 if (radioValues.length != 0) {
@@ -124,11 +129,14 @@ const convertTTSJob = () => {
                     res = await connection.queryAsync(insert)
                     console.log("insert into radioDB rwo:" + res.affectedRows)
                 }
-                
-                if (res.affectedRows)
-                resolve({
-                    length: results.length
-                })
+
+                if (res != null && res.affectedRows) {
+                    resolve({
+                        length: results.length
+                    })
+                } else {
+                    console.error('本组信息更新失败')
+                }
             } catch (error) {
                 console.error(error)
             }
