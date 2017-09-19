@@ -1,16 +1,18 @@
 "use strict";
 
 const fs = require("fs")
+const Readable = require('stream').Readable;
 const ttsAPI = require("./ttsAPI")
 const randomActor = require('./actor')
 const qiniu = require("qiniu")
 const bluebird = require("bluebird")
-bluebird.promisifyAll(qiniu.form_up.FormUploader.prototype, {
+bluebird.promisifyAll(qiniu.resume_up.ResumeUploader.prototype, {
     multiArgs: true
 })
 
 const text2speech = async(text) => {
 
+    text = "亲爱的用户，您好，这是一个语音合成示例，感谢您对科大讯飞语音技术的支持"
     var splitArr = text.split(/(\.|\?|!|。|？|！)/g)
     var textArr = []
     var subText = ""
@@ -52,6 +54,8 @@ const text2speech = async(text) => {
         }
     }
 
+    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data])
+    raw_data = Buffer.concat([raw_data, raw_data, raw_data, raw_data, raw_data , raw_data, raw_data, raw_data/*, raw_data, raw_data, raw_data, raw_data, raw_data, raw_data */ ])
     /* 创建wav文件头 */
     var buffer = new Buffer(44)
     var size_8 = raw_data.length + 44 - 8
@@ -184,7 +188,8 @@ const uploadspeech = async(key, buffer, saveBucket) => {
     var secret_key = 'E3QKF99mgA8HAyGF1nMlKWVVaKlIxRpTZvEb1CiO'
     var mac = new qiniu.auth.digest.Mac(access_key, secret_key)
     var options = {
-        scope: saveBucket//"pipixia-rawdata",
+        scope: saveBucket, //"pipixia-rawdata",
+        expires: 7200
     }
     var putPolicy = new qiniu.rs.PutPolicy(options)
 
@@ -196,13 +201,20 @@ const uploadspeech = async(key, buffer, saveBucket) => {
     //config.useHttpsDomain = true;
     // 上传是否使用cdn加速
     config.useCdnDomain = true;
-    var formUploader = new qiniu.form_up.FormUploader(config)
-    var putExtra = new qiniu.form_up.PutExtra()
+    var resumeUploader = new qiniu.resume_up.ResumeUploader(config)
+    var putExtra = new qiniu.resume_up.PutExtra()
     putExtra.mimeType = "audio/mpeg"
     putExtra.fname = key
-    // var key = "audio_" + moment().unix()+".mp3"
+    putExtra.resumeRecordFile = 'progress.log'
+    putExtra.progressCallback = function (uploadBytes, totalBytes) {
+        console.log("upload progress:" + uploadBytes + "(" + totalBytes + ")");
+    }
     try {
-        var results = await formUploader.putAsync(uploadToken, key, buffer, putExtra)
+        var fsStream = new Readable();
+        fsStream.push(buffer);
+        fsStream.push(null);
+        var results = await resumeUploader.putStreamAsync(uploadToken, null, fsStream, buffer.length, putExtra)
+        console.log("results:" + results)
         var respBody = results[0]
         var respInfo = results[1]
         if (respInfo.statusCode == 200) {
