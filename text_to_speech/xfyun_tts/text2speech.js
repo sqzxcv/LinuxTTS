@@ -210,14 +210,14 @@ const uploadspeech = async(buffer) => {
         console.log(`upload progress:......${parseInt(uploadBytes * 1009/totalBytes)/10} %....${uploadBytes/1000000} MB/ ${totalBytes/1000000}MB`);
     }
     try {
-        var results = await resumeUploader.putFileAsync(uploadToken, null, localfile, putExtra);
+        var results = await resumeUploader.putFileAsync(uploadToken, key, localfile, putExtra);
         console.log("results:" + results)
         var respBody = results[0]
         var respInfo = results[1]
         if (respInfo.statusCode == 200) {
             console.log(respBody)
             fs.unlinkSync(localfile)
-            return key
+            return respBody.key
         } else {
             console.log(respInfo.statusCode)
             console.log(respBody)
