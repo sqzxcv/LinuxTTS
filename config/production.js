@@ -1,5 +1,5 @@
 var config = {
-    "dbhost": "47.52.88.82",
+    "dbhost": "123.207.79.244",
     "dbuser": "root",
     "dbpwd": "Anhuiqiang851",
     "dbport": 3310,
