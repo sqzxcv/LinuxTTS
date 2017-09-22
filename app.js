@@ -32,7 +32,7 @@ const main = async() => {
         password: config['dbpwd'],
         database: "Nina",
         connectionLimit: 100,
-        port: "3306",
+        port: config['dbport'],
         waitForConnections: false
     });
     try {

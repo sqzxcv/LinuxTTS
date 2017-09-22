@@ -5,6 +5,7 @@ var config = {
     "dbhost": "localhost",
     "dbuser": "root",
     "dbpwd": "Anhuiqiang85!",
+    "dbport": 3310,
     "tdappid": "",
     'newspaper':"http://localhost:8082/presedocument?url=",//newspaper parse
     'host' : "http://localhost:3000"
