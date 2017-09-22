@@ -89,7 +89,7 @@ const convertTTSJob = () => {
                         var newtime = result.news_time
                         var catalogid = 1
                         var tags = sqlStringM.escape("")
-                        var radioValue = `('${"tts_raw_"+result.doc_id}', '${""}', '${"0"}', '${sqlStringM.escape(result.thumbnail)}', ${0}, '${""}', '${''}', ${tags}, '${""}', ${0}, ${newtime}, ${sqlStringM.escape(result.title)}, ${sqlStringM.escape(audio_path)}, ${moment().unix()}, ${catalogid})`
+                        var radioValue = `('${"tts_raw_"+result.doc_id}', '${""}', '${"0"}', ${sqlStringM.escape(result.thumbnail)}, ${0}, '${""}', '${''}', ${tags}, '${""}', ${0}, ${newtime}, ${sqlStringM.escape(result.title)}, ${sqlStringM.escape(audio_path)}, ${moment().unix()}, ${catalogid})`
 
                         var updateDoc = `(${result.doc_id}, ${sqlStringM.escape(audio_path)}, ${sqlStringM.escape(result.url)})`
                         callback(null, {
