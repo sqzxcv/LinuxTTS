@@ -140,7 +140,7 @@ const text_to_speech = async(src_text, params) => {
             console.log("...ing...大小：" + raw_data.length)
 
         }
-        await sleep(0.7)
+        await sleep(0.5)
     }
     if (ttsAPI.MSP_SUCCESS != ret) {
         console.error("QTTSAudioGet failed, error code: %d.\n", ret)
