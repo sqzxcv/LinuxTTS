@@ -88,7 +88,6 @@ const convertTTSJob = () => {
                         console.log("合成完成：" + audio_path)
                         // callback(null, ret)
                         var newtime = result.news_time
-                        //todo:tags, catalogid
                         var catalogid = 1
                         var tags = sqlStringM.escape("")
                         var radioValue = `('${"doc_"+result.doc_id}', '${""}', '${"0"}', '${sqlStringM.escape(result.thumbnail)}', ${0}, '${""}', '${''}', ${tags}, '${""}', ${0}, ${newtime}, ${sqlStringM.escape(result.title)}, ${sqlStringM.escape(audio_path)}, ${moment().unix()}, ${catalogid})`

@@ -1,11 +1,12 @@
 "use strict";
 
 const fs = require("fs")
-var streamBuffers = require('stream-buffers');
+const Readable = require('stream').Readable;
 const ttsAPI = require("./ttsAPI")
 const randomActor = require('./actor')
 const qiniu = require("qiniu")
 const bluebird = require("bluebird")
+const ffmpeg_to_mp3 = require('./ffmpeg_to_mp3')
 bluebird.promisifyAll(qiniu.resume_up.ResumeUploader.prototype, {
     multiArgs: true
 })
@@ -175,18 +176,12 @@ const uploadspeech = async(buffer) => {
     if (fsExistsSync(audioFileFolder) == false) {
         fs.mkdirSync(audioFileFolder);
     }
-    var key = "audio_" + ((new Date()).getTime()) + ".wav"
+    var key = "audio_" + ((new Date()).getTime()) + ".mp3"
     var localfile = audioFileFolder + "/" + key
-    // todo remove
-    try {
-        var fd = fs.openSync(localfile, "w");
-        fs.writeSync(fd, buffer, 0, buffer.length);
-        fs.closeSync(fd)
-        console.log("localfile: " + localfile)
-    } catch (error) {
-        console.error(error)
-        return null
-    }
+    var fsStream = new Readable();
+    fsStream.push(buffer);
+    fsStream.push(null);
+    await ffmpeg_to_mp3(fsStream, localfile)
 
     var access_key = '_D2Iavhr-DRKHHhW0BTT7-liQ2jO-1cC_lqKn0eF'
     var secret_key = 'E3QKF99mgA8HAyGF1nMlKWVVaKlIxRpTZvEb1CiO'
